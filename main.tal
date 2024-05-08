@@ -1,0 +1,100 @@
+( devices )
+|00 @System [ &vector $2 &pad $6 &r $2 &g $2 &b $2 ]
+|20 @Screen [ &vector $2 &width $2 &height $2 &pad $2 &x $2 &y $2 &addr $2 &pixel $1 &sprite ]
+|80 @Controller [ &vector $2 &button $1 &key $1 ]
+
+|0000
+( variables )
+  @snake &direction $1 &mode
+
+
+( main program )
+|0100
+      ( set system colors )
+      #2ce9 .System/r DEO2
+      #01c0 .System/g DEO2
+      #2ce5 .System/b DEO2
+
+      ( set initial x,y coordinates )
+      #0008 .Screen/x DEO2
+      #0008 .Screen/y DEO2
+
+      ( assign controller vector )
+      ;on-controller .Controller/vector DEO2
+
+      ( set sprite address )
+      ;square .Screen/addr DEO2
+
+      ( set frame )
+      ;on-frame .Screen/vector DEO2
+BRK
+
+@on-frame ( -> )
+      .snake/mode LDZ #01 EQU
+       ,&outline JCN
+
+      &fill
+        #04 .Screen/sprite DEO ( draw filled )
+        ,&check-arrows JMP
+
+      &outline
+        #01 .Screen/sprite DEO ( draw outline )
+      
+      &check-arrows
+        ( is the key 'w' )
+        .snake/direction LDZ
+        DUP LIT "s EQU
+        ,&down JCN ( jump to moving down )
+        
+        ( is the key 'd' )
+        DUP LIT "d EQU
+        ,&right JCN ( jump to moving right )
+
+        ( is the key 'a' )
+        DUP LIT "a EQU
+        ,&left JCN ( jump to moving left )
+
+        ( is the key 'w' )
+        DUP LIT "w EQU
+        ,&up JCN ( jump to moving up )
+        BRK
+
+      &up
+       .Screen/y DEI2 #0001 SUB2 .Screen/y DEO2 ( decrement y )
+      BRK
+      &down
+       .Screen/y DEI2 INC2 .Screen/y DEO2 ( increment y )
+      BRK
+      &left
+        .Screen/x DEI2 #0001 SUB2 .Screen/x DEO2 ( decrement x )
+      BRK
+      &right
+       .Screen/x DEI2 INC2 .Screen/x DEO2 ( increment x )
+      BRK
+      POP BRK
+
+@on-controller ( -> )
+     .Controller/key DEI DUP
+
+      ( if key "x" is pressed then trigger change mode label )
+      LIT "x EQU 
+      ,&change-mode JCN
+
+      &make-direction
+        .snake/direction STZ ( store snake direction in the "Store Zero Instruction" )
+      BRK
+
+      &change-mode
+        ( toggle between snake mode filled (#04) and outline (#01) )
+        .snake/mode LDZ #01 EQU
+         ,&mode-outline JCN
+
+        #01 .snake/mode STZ
+        BRK
+        
+      &mode-outline
+        #02 .snake/mode STZ
+      BRK
+        
+( sprite )
+@square ff81 8181 8181 81ff
