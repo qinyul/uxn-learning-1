@@ -42,7 +42,7 @@ BRK
       
       &check-arrows
         ( is the key 'w' )
-        .snake/direction LDZ
+        .snake/direction LDZ DUP
         DUP LIT "s EQU
         ,&down JCN ( jump to moving down )
         
